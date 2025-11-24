@@ -18,7 +18,6 @@
 - React + TypeScript + Vite 建構前端介面。
 - Tailwind 風格化設計與 lucide-react 圖示。
 - 自訂 `splitImage` 與 `removeColorFromImage` 工具處理影像。
-- Gemini API（透過 `services/geminiService.ts`）可擴充進階 AI 功能。
 
 ## Run Locally
 
@@ -27,8 +26,7 @@
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Run the app:
    `npm run dev`
 
 ## Deploy with GitHub CI/CD
