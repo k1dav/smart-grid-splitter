@@ -34,7 +34,7 @@ const TileGallery: React.FC<TileGalleryProps> = ({ tiles, onDownloadAll }) => {
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
               <a
                 href={tile.url}
-                download={`tile_${tile.row + 1}_${tile.col + 1}.jpg`}
+                download={`tile_${tile.row + 1}_${tile.col + 1}.png`}
                 className="p-2 bg-white text-black rounded-full hover:scale-110 transition-transform"
                 title="Download this tile"
               >
