@@ -4,20 +4,22 @@ import { GridConfig, Tile } from './types';
 import ImagePreview from './components/ImagePreview';
 import ControlPanel from './components/ControlPanel';
 import TileGallery from './components/TileGallery';
-import { splitImage, downloadAllTiles, removeColorFromImage } from './utils/imageUtils';
+import { splitImage, downloadAllTiles, removeColorFromImage, downloadTabTile } from './utils/imageUtils';
 
 const App: React.FC = () => {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [config, setConfig] = useState<GridConfig>({ 
     rows: 4, 
-    cols: 5,
+    cols: 6,
     padding: { top: 0, right: 0, bottom: 0, left: 0 }
   });
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRemovingColor, setIsRemovingColor] = useState(false);
+  const [isGeneratingTab, setIsGeneratingTab] = useState(false);
+  const [generateTabMode, setGenerateTabMode] = useState(false);
+  const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -28,8 +30,8 @@ const App: React.FC = () => {
           const result = e.target.result as string;
           setImageSrc(result);
           setOriginalImageSrc(result);
-          setImageFile(file);
           setTiles([]); // Reset tiles on new image
+          setSelectedTileId(null);
           // Reset padding on new image
           setConfig(prev => ({...prev, padding: { top: 0, right: 0, bottom: 0, left: 0 }}));
         }
@@ -47,6 +49,7 @@ const App: React.FC = () => {
       setTimeout(async () => {
         const generatedTiles = await splitImage(imageSrc, config);
         setTiles(generatedTiles);
+        setSelectedTileId(null);
         setIsProcessing(false);
         
         // Scroll to results
@@ -85,6 +88,35 @@ const App: React.FC = () => {
   const handleDownloadAll = () => {
     if (tiles.length > 0) {
       downloadAllTiles(tiles);
+    }
+  };
+
+  const handleToggleTabMode = (checked: boolean) => {
+    setGenerateTabMode(checked);
+    if (!checked) {
+      setSelectedTileId(null);
+    }
+  };
+
+  const handleTileSelect = (tileId: string) => {
+    if (!generateTabMode) return;
+    setSelectedTileId(prev => prev === tileId ? null : tileId);
+  };
+
+  const handleGenerateTab = async () => {
+    if (!generateTabMode || !selectedTileId) return;
+    const targetTile = tiles.find(tile => tile.id === selectedTileId);
+    if (!targetTile) return;
+
+    setIsGeneratingTab(true);
+    try {
+      const paddedName = String(targetTile.sequence).padStart(2, '0');
+      await downloadTabTile(targetTile, 96, 74, `${paddedName}_tab.png`);
+    } catch (error) {
+      console.error("Tab generation error:", error);
+      alert("產生 TAB 檔失敗，請再試一次。");
+    } finally {
+      setIsGeneratingTab(false);
     }
   };
 
@@ -132,6 +164,8 @@ const App: React.FC = () => {
                 isRemovingColor={isRemovingColor}
                 onResetImage={handleResetImage}
                 isModified={isModified}
+                generateTabMode={generateTabMode}
+                onToggleTabMode={handleToggleTabMode}
             />
         </aside>
 
@@ -142,7 +176,15 @@ const App: React.FC = () => {
       </main>
 
       {/* Results Section */}
-      <TileGallery tiles={tiles} onDownloadAll={handleDownloadAll} />
+      <TileGallery 
+          tiles={tiles} 
+          onDownloadAll={handleDownloadAll} 
+          enableTabMode={generateTabMode}
+          selectedTileId={selectedTileId}
+          onSelectTile={handleTileSelect}
+          onGenerateTab={handleGenerateTab}
+          isGeneratingTab={isGeneratingTab}
+      />
     </div>
   );
 };

@@ -129,6 +129,43 @@ export const downloadAllTiles = async (tiles: Tile[], baseName: string = 'split_
   }
 };
 
+const createResizedTileBlob = (tileUrl: string, width: number, height: number): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = tileUrl;
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error("Canvas context not available"));
+        return;
+      }
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Failed to generate blob"));
+        }
+      }, 'image/png', 1.0);
+    };
+
+    img.onerror = (err) => reject(err);
+  });
+};
+
+export const downloadTabTile = async (tile: Tile, width: number = 96, height: number = 74, filename: string = 'tab.png') => {
+  const blob = await createResizedTileBlob(tile.url, width, height);
+  FileSaver.saveAs(blob, filename);
+};
+
 /**
  * Removes a specific color from an image within a tolerance range.
  * This is done client-side using Canvas manipulation.

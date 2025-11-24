@@ -12,6 +12,8 @@ interface ControlPanelProps {
   isRemovingColor: boolean;
   onResetImage: () => void;
   isModified: boolean;
+  generateTabMode: boolean;
+  onToggleTabMode: (checked: boolean) => void;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -24,6 +26,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   isRemovingColor,
   onResetImage,
   isModified,
+  generateTabMode,
+  onToggleTabMode,
 }) => {
   const [targetColor, setTargetColor] = React.useState<string>("#ffffff");
   const [tolerance, setTolerance] = React.useState<number>(15);
@@ -96,6 +100,20 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </button>
         ))}
       </div>
+
+      <label className="flex items-center gap-3 text-sm text-secondary bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+        <input
+          type="checkbox"
+          className="w-4 h-4 accent-primary"
+          checked={generateTabMode}
+          onChange={(e) => onToggleTabMode(e.target.checked)}
+          disabled={!hasImage}
+        />
+        <div className="flex flex-col leading-tight">
+          <span className="text-white text-sm font-medium">產生 TAB 檔案</span>
+          <span className="text-xs text-secondary">選取單張後輸出 96×74 PNG</span>
+        </div>
+      </label>
 
       <hr className="border-white/10" />
 
