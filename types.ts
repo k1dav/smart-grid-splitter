@@ -4,6 +4,7 @@ export interface Tile {
   blob: Blob;
   row: number;
   col: number;
+  sequence: number;
   width: number;
   height: number;
 }

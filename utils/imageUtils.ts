@@ -78,6 +78,8 @@ export const splitImage = async (
             OUTPUT_TILE_SIZE
           );
 
+          const sequence = r * safeCols + c + 1;
+
           // Convert to blob
           outputCanvas.toBlob((blob) => {
             if (blob) {
@@ -87,6 +89,7 @@ export const splitImage = async (
                 blob: blob,
                 row: r,
                 col: c,
+                sequence,
                 width: OUTPUT_TILE_SIZE,
                 height: OUTPUT_TILE_SIZE
               });
@@ -116,8 +119,8 @@ export const downloadAllTiles = async (tiles: Tile[], baseName: string = 'split_
 
   if (folder) {
     tiles.forEach((tile) => {
-      // Use png for transparency support
-      const filename = `${baseName}_row${tile.row + 1}_col${tile.col + 1}.png`;
+      const paddedIndex = String(tile.sequence).padStart(2, '0');
+      const filename = `${paddedIndex}.png`;
       folder.file(filename, tile.blob);
     });
 
