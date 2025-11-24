@@ -27,16 +27,21 @@ export const splitImage = async (
       const tileWidth = Math.floor(activeWidth / safeCols);
       const tileHeight = Math.floor(activeHeight / safeRows);
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const cropCanvas = document.createElement('canvas');
+      const cropCtx = cropCanvas.getContext('2d');
+      const outputCanvas = document.createElement('canvas');
+      const outputCtx = outputCanvas.getContext('2d');
+      const OUTPUT_TILE_SIZE = 240;
 
-      if (!ctx) {
+      if (!cropCtx || !outputCtx) {
         reject(new Error("Could not get canvas context"));
         return;
       }
 
-      canvas.width = tileWidth;
-      canvas.height = tileHeight;
+      cropCanvas.width = tileWidth;
+      cropCanvas.height = tileHeight;
+      outputCanvas.width = OUTPUT_TILE_SIZE;
+      outputCanvas.height = OUTPUT_TILE_SIZE;
 
       let completed = 0;
       const total = safeRows * safeCols;
@@ -44,14 +49,14 @@ export const splitImage = async (
       for (let r = 0; r < safeRows; r++) {
         for (let c = 0; c < safeCols; c++) {
           // Clear canvas for new tile
-          ctx.clearRect(0, 0, tileWidth, tileHeight);
+          cropCtx.clearRect(0, 0, tileWidth, tileHeight);
           
           // Calculate source position (offset by padding)
           const srcX = padding.left + (c * tileWidth);
           const srcY = padding.top + (r * tileHeight);
 
           // Draw specific slice
-          ctx.drawImage(
+          cropCtx.drawImage(
             img,
             srcX,          // Source x
             srcY,          // Source y
@@ -63,8 +68,18 @@ export const splitImage = async (
             tileHeight     // Dest height
           );
 
+          // Scale to fixed output size for consistent exports
+          outputCtx.clearRect(0, 0, OUTPUT_TILE_SIZE, OUTPUT_TILE_SIZE);
+          outputCtx.drawImage(
+            cropCanvas,
+            0,
+            0,
+            OUTPUT_TILE_SIZE,
+            OUTPUT_TILE_SIZE
+          );
+
           // Convert to blob
-          canvas.toBlob((blob) => {
+          outputCanvas.toBlob((blob) => {
             if (blob) {
               tiles.push({
                 id: `tile_${r}_${c}`,
@@ -72,8 +87,8 @@ export const splitImage = async (
                 blob: blob,
                 row: r,
                 col: c,
-                width: tileWidth,
-                height: tileHeight
+                width: OUTPUT_TILE_SIZE,
+                height: OUTPUT_TILE_SIZE
               });
             }
             
